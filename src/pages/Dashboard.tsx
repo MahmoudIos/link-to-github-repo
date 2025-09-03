@@ -84,7 +84,7 @@ const Dashboard = () => {
 
 		setCurrentUser(user);
 	}, [navigate]);
-console.log('ffffffffffff:', localStorage.getItem('accessToken'));
+
 	const handleAddVendor = async (vendorData: {
 		name: string;
 		email: string;

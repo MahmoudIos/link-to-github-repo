@@ -21,7 +21,6 @@ const Landing = () => {
 			) {
 				localStorage.setItem('isLoggedIn', 'true');
 				localStorage.setItem('currentUser', credentials.username);
-				localStorage.setItem('accessToken', 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0dGVlc3N0dC51c2VyK1RETUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ijg3NTBlYTZiLTAxYzAtNGVkNS1hMjJkLTk5ZDk2MDA3OTJlZCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlRETSIsImV4cCI6MTg0Njg5MDU5MiwiaXNzIjoiVmVuZG9yTWFuYWdlbWVudC5BcGkiLCJhdWQiOiJWZW5kb3JNYW5hZ2VtZW50LkNsaWVudCJ9.Si5rB7LtIdZBEp7XlBiTajbjd8Sh_w4JG6wKAa-81-pDdtRwPRD_Cm1kKbaTW00PkNmdJr4j0_l8ZvGMPw58VA');
 				navigate('/dashboard');
 			} else {
 				alert('Invalid credentials. Use admin/password for demo.');
