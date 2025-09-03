@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useApi } from '@/hooks/useApi';
+import api from '@/api/api';
+import { endpoints } from '@/api/endpoints';
+import { handleApiError, handleApiSuccess } from '@/utils/toastHandler';
+import type { ApiResponseDto } from '@/types/apiResponse';
 import type {
 	AnalyzeAssessmentRequestDto,
 	AssessmentAnalysisResultDto,
@@ -24,62 +27,85 @@ export const assessmentAnalysisKeys = {
 };
 
 // API Functions
-export const useAssessmentAnalysisApi = () => {
-	const { apiPublic, apiPrivate } = useApi();
+const analyzeAssessment = async (
+	assessmentId: string,
+	data: AnalyzeAssessmentRequestDto
+): Promise<AssessmentAnalysisResultDto> => {
+	const response = await api.post<ApiResponseDto<AssessmentAnalysisResultDto>>(
+		endpoints.assessmentAnalysis.analyze(assessmentId),
+		data
+	);
+	
+	if (!response.data.success) {
+		throw new Error(response.data.errors.join(", ") || "Failed to analyze assessment");
+	}
+	
+	if (!response.data.data) {
+		throw new Error("No analysis data returned");
+	}
+	
+	return response.data.data;
+};
 
-	const analyzeAssessment = async (
-		assessmentId: string,
-		data: AnalyzeAssessmentRequestDto
-	): Promise<AssessmentAnalysisResultDto> => {
-		const response = await apiPrivate.post(
-			`/api/v1/assessmentanalysis/${assessmentId}/analyze`,
-			data
-		);
-		return response.data;
-	};
+const getAssessmentResults = async (
+	assessmentId: string
+): Promise<AssessmentResultsDto> => {
+	const response = await api.get<ApiResponseDto<AssessmentResultsDto>>(
+		endpoints.assessmentAnalysis.results(assessmentId)
+	);
+	
+	if (!response.data.success) {
+		throw new Error(response.data.errors.join(", ") || "Failed to get assessment results");
+	}
+	
+	if (!response.data.data) {
+		throw new Error("No results data returned");
+	}
+	
+	return response.data.data;
+};
 
-	const getAssessmentResults = async (
-		assessmentId: string
-	): Promise<AssessmentResultsDto> => {
-		const response = await apiPublic.get(
-			`/api/v1/assessmentanalysis/${assessmentId}/results`
-		);
-		return response.data;
-	};
+const getNotImplementedItems = async (
+	assessmentId: string,
+	scoreThreshold?: number
+): Promise<NotImplementedItemsDto> => {
+	const url = endpoints.assessmentAnalysis.notImplemented(assessmentId);
+	const params = scoreThreshold ? `?scoreThreshold=${scoreThreshold}` : '';
+	const response = await api.get<ApiResponseDto<NotImplementedItemsDto>>(`${url}${params}`);
+	
+	if (!response.data.success) {
+		throw new Error(response.data.errors.join(", ") || "Failed to get not implemented items");
+	}
+	
+	if (!response.data.data) {
+		throw new Error("No not implemented items data returned");
+	}
+	
+	return response.data.data;
+};
 
-	const getNotImplementedItems = async (
-		assessmentId: string,
-		scoreThreshold?: number
-	): Promise<NotImplementedItemsDto> => {
-		const url = `/api/v1/assessmentanalysis/${assessmentId}/not-implemented`;
-		const params = scoreThreshold ? `?scoreThreshold=${scoreThreshold}` : '';
-		const response = await apiPublic.get(`${url}${params}`);
-		return response.data;
-	};
-
-	const updateItemStatuses = async (
-		assessmentId: string,
-		data: UpdateStatusRequestDto
-	): Promise<StatusUpdateResultDto> => {
-		const response = await apiPrivate.post(
-			`/api/v1/assessmentanalysis/${assessmentId}/update-status`,
-			data
-		);
-		return response.data;
-	};
-
-	return {
-		analyzeAssessment,
-		getAssessmentResults,
-		getNotImplementedItems,
-		updateItemStatuses,
-	};
+const updateItemStatuses = async (
+	assessmentId: string,
+	data: UpdateStatusRequestDto
+): Promise<StatusUpdateResultDto> => {
+	const response = await api.post<ApiResponseDto<StatusUpdateResultDto>>(
+		endpoints.assessmentAnalysis.updateStatus(assessmentId),
+		data
+	);
+	
+	if (!response.data.success) {
+		throw new Error(response.data.errors.join(", ") || "Failed to update item statuses");
+	}
+	
+	if (!response.data.data) {
+		throw new Error("No status update data returned");
+	}
+	
+	return response.data.data;
 };
 
 // React Query Hooks
 export const useAssessmentResults = (assessmentId: string) => {
-	const { getAssessmentResults } = useAssessmentAnalysisApi();
-
 	return useQuery({
 		queryKey: assessmentAnalysisKeys.results(assessmentId),
 		queryFn: () => getAssessmentResults(assessmentId),
@@ -92,8 +118,6 @@ export const useNotImplementedItems = (
 	assessmentId: string,
 	scoreThreshold?: number
 ) => {
-	const { getNotImplementedItems } = useAssessmentAnalysisApi();
-
 	return useQuery({
 		queryKey: assessmentAnalysisKeys.notImplemented(
 			assessmentId,
@@ -107,7 +131,6 @@ export const useNotImplementedItems = (
 
 export const useAnalyzeAssessment = () => {
 	const queryClient = useQueryClient();
-	const { analyzeAssessment } = useAssessmentAnalysisApi();
 
 	return useMutation({
 		mutationFn: ({
@@ -118,6 +141,7 @@ export const useAnalyzeAssessment = () => {
 			data: AnalyzeAssessmentRequestDto;
 		}) => analyzeAssessment(assessmentId, data),
 		onSuccess: (_, { assessmentId }) => {
+			handleApiSuccess("Assessment analyzed successfully!");
 			// Invalidate all related queries
 			queryClient.invalidateQueries({
 				queryKey: assessmentAnalysisKeys.results(assessmentId),
@@ -126,12 +150,12 @@ export const useAnalyzeAssessment = () => {
 				queryKey: assessmentAnalysisKeys.notImplemented(assessmentId),
 			});
 		},
+		onError: handleApiError,
 	});
 };
 
 export const useUpdateItemStatuses = () => {
 	const queryClient = useQueryClient();
-	const { updateItemStatuses } = useAssessmentAnalysisApi();
 
 	return useMutation({
 		mutationFn: ({
@@ -142,6 +166,7 @@ export const useUpdateItemStatuses = () => {
 			data: UpdateStatusRequestDto;
 		}) => updateItemStatuses(assessmentId, data),
 		onSuccess: (_, { assessmentId }) => {
+			handleApiSuccess("Item statuses updated successfully!");
 			// Invalidate all related queries
 			queryClient.invalidateQueries({
 				queryKey: assessmentAnalysisKeys.results(assessmentId),
@@ -150,5 +175,6 @@ export const useUpdateItemStatuses = () => {
 				queryKey: assessmentAnalysisKeys.notImplemented(assessmentId),
 			});
 		},
+		onError: handleApiError,
 	});
 };

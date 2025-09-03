@@ -21,13 +21,13 @@ import {
 	Pie,
 	Cell,
 } from 'recharts';
-import { useVendor } from '@/services/vendorsApi';
+import { useVendor } from '@/hooks/useVendors';
 import {
 	useProductsByVendor,
 	useCreateProduct,
 	useUpdateProduct,
 	useDeleteProduct,
-} from '@/services/productsApi';
+} from '@/hooks/useProducts';
 import { ProductForm } from '@/components/forms/product-form';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -107,17 +107,9 @@ const VendorDetails = () => {
 		try {
 			await createProductMutation.mutateAsync(productData);
 			setIsProductFormOpen(false);
-			toast({
-				title: 'Success',
-				description: 'Product created successfully.',
-			});
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to create product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to create product. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
@@ -137,20 +129,13 @@ const VendorDetails = () => {
 			await updateProductMutation.mutateAsync({
 				id: editingProduct.id,
 				data: productData,
+				vendorId: editingProduct.vendorId,
 			});
 			setIsEditProductOpen(false);
 			setEditingProduct(null);
-			toast({
-				title: 'Success',
-				description: 'Product updated successfully.',
-			});
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to update product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to update product. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
@@ -164,20 +149,15 @@ const VendorDetails = () => {
 
 		try {
 			setDeletingProductId(productToDelete.id);
-			await deleteProductMutation.mutateAsync(productToDelete.id);
-			toast({
-				title: 'Success',
-				description: 'Product deleted successfully.',
+			await deleteProductMutation.mutateAsync({
+				id: productToDelete.id,
+				vendorId: productToDelete.vendorId,
 			});
 			setIsDeleteProductDialogOpen(false);
 			setProductToDelete(null);
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to delete product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to delete product. Please try again.',
-				variant: 'destructive',
-			});
 		} finally {
 			setDeletingProductId(null);
 		}

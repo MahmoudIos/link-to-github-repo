@@ -17,13 +17,13 @@ import {
 	useCreateVendor,
 	useUpdateVendor,
 	useDeleteVendor,
-} from '@/services/vendorsApi';
+} from '@/hooks/useVendors';
 import {
 	useProducts,
 	useCreateProduct,
 	useUpdateProduct,
 	useDeleteProduct,
-} from '@/services/productsApi';
+} from '@/hooks/useProducts';
 import { ProductForm } from '@/components/forms/product-form';
 import type {
 	VendorDto,
@@ -92,17 +92,9 @@ const Dashboard = () => {
 		try {
 			await createVendorMutation.mutateAsync(vendorData);
 			setIsVendorFormOpen(false);
-			toast({
-				title: 'Success',
-				description: 'Vendor created successfully.',
-			});
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to create vendor:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to create vendor. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
@@ -125,17 +117,9 @@ const Dashboard = () => {
 			});
 			setIsEditVendorOpen(false);
 			setEditingVendor(null);
-			toast({
-				title: 'Success',
-				description: 'Vendor updated successfully.',
-			});
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to update vendor:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to update vendor. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
@@ -150,19 +134,11 @@ const Dashboard = () => {
 		try {
 			setDeletingVendorId(vendorToDelete.id);
 			await deleteVendorMutation.mutateAsync(vendorToDelete.id);
-			toast({
-				title: 'Success',
-				description: 'Vendor deleted successfully.',
-			});
 			setIsDeleteDialogOpen(false);
 			setVendorToDelete(null);
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to delete vendor:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to delete vendor. Please try again.',
-				variant: 'destructive',
-			});
 		} finally {
 			setDeletingVendorId(null);
 		}
@@ -178,17 +154,9 @@ const Dashboard = () => {
 		try {
 			await createProductMutation.mutateAsync(productData);
 			setIsProductFormOpen(false);
-			toast({
-				title: 'Success',
-				description: 'Product created successfully.',
-			});
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to create product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to create product. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
@@ -208,20 +176,13 @@ const Dashboard = () => {
 			await updateProductMutation.mutateAsync({
 				id: editingProduct.id,
 				data: productData,
+				vendorId: editingProduct.vendorId,
 			});
 			setIsEditProductOpen(false);
 			setEditingProduct(null);
-			toast({
-				title: 'Success',
-				description: 'Product updated successfully.',
-			});
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to update product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to update product. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
@@ -235,20 +196,15 @@ const Dashboard = () => {
 
 		try {
 			setDeletingProductId(productToDelete.id);
-			await deleteProductMutation.mutateAsync(productToDelete.id);
-			toast({
-				title: 'Success',
-				description: 'Product deleted successfully.',
+			await deleteProductMutation.mutateAsync({
+				id: productToDelete.id,
+				vendorId: productToDelete.vendorId,
 			});
 			setIsDeleteProductDialogOpen(false);
 			setProductToDelete(null);
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to delete product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to delete product. Please try again.',
-				variant: 'destructive',
-			});
 		} finally {
 			setDeletingProductId(null);
 		}

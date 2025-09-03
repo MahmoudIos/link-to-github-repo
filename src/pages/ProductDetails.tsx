@@ -25,7 +25,7 @@ import {
 	useApproveProduct,
 	useUpdateProduct,
 	useDeleteProduct,
-} from '@/services/productsApi';
+} from '@/hooks/useProducts';
 import { ProductForm } from '@/components/forms/product-form';
 import { AssessmentAnalysisModal } from '@/components/forms/assessment-analysis-modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -81,19 +81,12 @@ const ProductDetails = () => {
 			await updateProductMutation.mutateAsync({
 				id: product.id,
 				data: productData,
+				vendorId: product.vendorId,
 			});
 			setIsEditFormOpen(false);
-			toast({
-				title: 'Success',
-				description: 'Product updated successfully.',
-			});
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to update product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to update product. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
@@ -104,18 +97,11 @@ const ProductDetails = () => {
 			await approveProductMutation.mutateAsync({
 				id: product.id,
 				data: { comments: 'Approved from product details page' },
-			});
-			toast({
-				title: 'Success',
-				description: 'Product approved successfully.',
+				vendorId: product.vendorId,
 			});
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to approve product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to approve product. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
@@ -123,19 +109,14 @@ const ProductDetails = () => {
 		if (!product) return;
 
 		try {
-			await deleteProductMutation.mutateAsync(product.id);
-			toast({
-				title: 'Success',
-				description: 'Product deleted successfully.',
+			await deleteProductMutation.mutateAsync({
+				id: product.id,
+				vendorId: product.vendorId,
 			});
 			navigate('/dashboard');
 		} catch (error) {
+			// Error handling is done in the mutation hook
 			console.error('Failed to delete product:', error);
-			toast({
-				title: 'Error',
-				description: 'Failed to delete product. Please try again.',
-				variant: 'destructive',
-			});
 		}
 	};
 
